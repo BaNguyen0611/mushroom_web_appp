@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phân loại Nấm - ID3 (Tiếng Việt)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🍄 Phân loại Nấm (ID3)</h1>
+    <p>Chọn 4 thuộc tính quan trọng bằng tiếng Việt. Kết quả dự đoán sẽ hiển thị bên dưới.</p>
+
+    <form id="predictForm">
+      {% for feature, options in feature_options.items() %}
+        <div class="field">
+          <label>{{ feature_name_vi[feature] }}</label>
+          <select name="{{ feature }}">
+            <option value="">-- Chọn giá trị --</option>
+            {% for value, label in options %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endfor %}
+      <button type="submit">🔮 Dự đoán</button>
+    </form>
+
+    <div id="result" class="result">Chưa có dự đoán</div>
+  </div>
+
+  <script>
+    document.getElementById("predictForm").addEventListener("submit", async function(e){
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const payload = {};
+      formData.forEach((v, k) => payload[k] = v);
+      const res = await fetch("/predict", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      const r = document.getElementById("result");
+      if (data.label === "e") {
+          r.textContent = "🍄 KẾT QUẢ: Nấm ăn được";
+          r.className = "result good";
+      } else if (data.label === "p") {
+          r.textContent = "☠️ KẾT QUẢ: Nấm độc";
+          r.className = "result bad";
+      } else {
+          r.textContent = "⚠️ Không xác định (hãy chọn đủ giá trị)";
+          r.className = "result unknown";
+      }
+    });
+  </script>
+</body>
+</html>
